@@ -1,0 +1,40 @@
+# project specific
+xxl.*
+
+# VSCode
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions
+
+# Visual Studio
+# User-specific files
+*.suo
+*.user
+packages/
+
+# Build results
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+
+# Visual Studio cache/options directory
+.vs/
+wwwroot/
+
+# .NET Core
+artifacts/
+**/Properties/launchSettings.json
+
+# Visual Studio profiler
+*.psess
+*.vspx
+
+# NuGet Packages
+*.nupkg
+
+# Node.js Tools for Visual Studio
+node_modules/
+
+*.snk
