@@ -1,6 +1,6 @@
 UploadStream - high performance file upload streaming for dotnet
 =================================================================
-[![pipeline status](https://gitlab.com/ma1f/uploadstream/badges/master/pipeline.svg)](https://gitlab.com/ma1f/uploadstream/commits/master)
+<!--[![pipeline status](https://gitlab.com/ma1f/uploadstream/badges/master/pipeline.svg)](https://gitlab.com/ma1f/uploadstream/commits/master)-->
 
 Installation
 ------------
@@ -11,21 +11,22 @@ Nuget: [https://www.nuget.org/packages/UploadStream](https://www.nuget.org/packa
 
 Features
 --------
-Optimise multi-part streaming file upload performance, reduced CPU usage ~25% (us), reduced Memory impact ~50% (gen0 gc).
+Optimise multi-part streaming file upload performance, reduce CPU usage ~25% (us) and Memory impact ~50% (gen0 gc).
 
 By default dotnet model form model binding loads the entire stream into memory using `IEnumerable<IFormFile>` - this is non-ideal for large files
-where processing of the stream should occur while streaming rather then buffering entire file(s) to memory/disk.
+where processing of the stream should occur during streaming rather then buffering entire file(s) to memory/disk.
 
 This package allows upload streams to be asynchronously processed via a delegate (`StreamFiles<T>(Action<IFormFile> func)`,
 maintaining generic model binding functionality with `ModelState` validation - default form model binding is disabled via a
-custom `[DisableModelBinding]` attribute.
+custom `[DisableFormModelBinding]` attribute.
 
 Usage
 -----
 ```csharp
 [HttpPost("upload")]
-// disable default model binding in order to enable processing of streams without buffering entire stream (note that this is only needed if Model binding via route/querystring etc is required, if no arguments are passed in then no FormModel binding is triggered).
-[DisableModelBinding]
+// disable default model binding in order to enable processing of streams without buffering entire stream
+// (only if additional Model binding is required, if no arguments passed then Form Model binding isn't triggered).
+[DisableFormModelBinding]
 public async Task<IActionResult> Upload(MyRouteModel routeModel) {
     // returns a generic typed model, optionally a non-generic overload is offered if no model binding is required
     MyModel model = await this.StreamFiles<MyModel>(async formFile => {

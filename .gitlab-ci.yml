@@ -1,0 +1,31 @@
+variables:
+  GIT_DEPTH: "1"
+  GIT_STRATEGY: fetch
+  PACKAGE_VERSION: "$CI_PIPELINE_ID"
+
+stages:
+  - build
+  - test
+  - package
+
+cache:
+  paths:
+    - ~/.nuget/packages
+
+before_script:
+  - dotnet restore
+
+build:
+  stage: build
+  script:
+    - dotnet build UploadStream -c debug -v minimal
+
+test:
+  stage: test
+  script: 
+    - dotnet test UploadStream.UnitTests/UploadStream.UnitTests.csproj -v minimal
+   
+package:
+  stage: package
+  script:
+    - dotnet pack UploadStream/UploadStream.csproj -c release -v minimal -o .nupkgs/
