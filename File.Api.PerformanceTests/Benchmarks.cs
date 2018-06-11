@@ -9,7 +9,7 @@ namespace File.Api.PerformanceTests {
             BenchmarkRunner.Run<UploadStreamBenchmarks>();
 
             BenchmarkRunner.Run<UploadStreamModelBenchmarks>();
-            
+
             BenchmarkRunner.Run<UploadBase64LoadTestBenchmarks>();
             BenchmarkRunner.Run<UploadFileLoadTestBenchmarks>();
             BenchmarkRunner.Run<UploadStreamLoadTestBenchmarks>();

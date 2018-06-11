@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.TestHost;
 
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Attributes.Columns;
+using BenchmarkDotNet.Attributes.Exporters;
 using BenchmarkDotNet.Order;
 
 namespace File.Api.PerformanceTests {

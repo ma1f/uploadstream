@@ -11,7 +11,7 @@ Nuget: [https://www.nuget.org/packages/UploadStream](https://www.nuget.org/packa
 
 Features
 --------
-Optimise multi-part streaming file upload performance, reduce CPU usage ~25% (us) and Memory impact ~50% (gen0 gc).
+Optimise multi-part streaming file upload performance, reduced CPU usage ~25% (us) and Memory impact ~50% (gen0 gc).
 
 By default dotnet model form model binding loads the entire stream into memory using `IEnumerable<IFormFile>` - this is non-ideal for large files
 where processing of the stream should occur during streaming rather then buffering entire file(s) to memory/disk.
@@ -28,7 +28,7 @@ Usage
 // (only if additional Model binding is required, if no arguments passed then Form Model binding isn't triggered).
 [DisableFormModelBinding]
 public async Task<IActionResult> Upload(MyRouteModel routeModel) {
-    // returns a generic typed model, optionally a non-generic overload is offered if no model binding is required
+    // returns a generic typed model, alternatively non-generic overload if no model binding is required
     MyModel model = await this.StreamFiles<MyModel>(async formFile => {
         // implement processing of stream as required via an IFormFile interface
         using (var stream = formfile.OpenReadStream())
@@ -49,9 +49,8 @@ which converges at ~25% reduced CPU usage (us), and ~50% reduced memory impact (
 larger (6MB+), performance improvements for smaller files (10kb-1Mb) range from 5%-20% reduced CPU usage and 5%-30% reduced memory impact.
 
 Out of interest a comparison to file uploads via a base64 json model was performed, interestingly this actually offers improved performance (~15%)
-for very small file sizes (<10kb), however becames extremely unwieldy, particularly at anything over the streaming buffer size (64kb or 80kb) -
-a huge ~10-20x slower and high memory heap thrashing. The base64 model typically results in 30-40% increased bandwidth usage in addition to
-the increased CPU and Memory usage.
+for very small file sizes (<10kb), however quickly becames extremely unwieldy, ~10-20x slower and high memory heap thrashing.
+The base64 model typically results in 30-40% increased bandwidth usage in addition to the increased CPU and Memory usage.
 
 | Alias | File sizes | StreamFiles (us/gc) | Base64 (us) |
 |------ |-----------:|--------------------:|------------:|
@@ -107,7 +106,7 @@ Results normalised to `IFormFile` (UploadFile) as a default baseline.
 |    Xl |    21.91MB |       0.67x / 0.45x |      39.52x |
 
 |       Method | Filename |         Mean |      Error |     StdDev |     Gen 0 |     Gen 1 |     Gen 2 | Allocated |
-|------------- |--------- |-------------:|-----------:|-----------:|----------:|----------:|----------:|----------:|
+|------------- |--------- |-------------:|-----------:|-----------:|----a------:|----------:|----------:|----------:|
 | UploadBase64 |   xs.png |     1.076 ms |  0.0211 ms |  0.0421 ms |  250.0000 |   62.5000 |         - |  17.95 KB |
 | UploadBase64 |   sm.jpg |     4.457 ms |  0.1062 ms |  0.1654 ms |   62.5000 |   62.5000 |         - |  13.32 KB |
 | UploadBase64 |   md.jpg |    42.683 ms |  0.8300 ms |  1.1081 ms | 1187.5000 | 1125.0000 | 1062.5000 |  22.48 KB |
@@ -132,15 +131,17 @@ Results normalised to `IFormFile` (UploadFile) as a default baseline.
 ### Multipart Load Performance - 1x Upload, 20x attached Files
 Results of uploading 20x files in one upload with `IEnumerable<IFormFile>` compared to `StreamFiles` show below.
 Interestingly for smaller file sizes `IEnumerable<IFormFile>` demonstrates better performance/memory, however
-after ~1Mb in size `StreamFiles` quickly becmoes more highly performant.
+after ~1Mb in size `StreamFiles` quickly becmoes more highly performant (25% CPU, 60% Memory).
 
-| Alias | File sizes | StreamFiles (us/gc) |
-|------ |-----------:|----------------------:|
-|    Xs |     5.94kB |         1.16x / 1.23x |
-|    Sm |   106.53kB |         1.12x / 1.20x |
-|    Md |   865.37kB |         0.96x / 1.01x |
-|    Lg |     6.04MB |         0.75x / 0.69x |
-|    Xl |    21.91MB |         0.76x / 0.39x |
+Uploading 20x files in one go vs 20 API calls offers ~2.5x improved performance.
+
+| Alias | File sizes | StreamFiles (us/gc) | 20x IFormFile (us) | 20x StreamFiles (us) |
+|------ |-----------:|--------------------:|-------------------:|---------------------:|
+|    Xs |     5.94kB |       1.16x / 1.23x |              2.45x |                2.34x |
+|    Sm |   106.53kB |       1.12x / 1.20x |              2.46x |                2.54x |
+|    Md |   865.37kB |       0.96x / 1.01x |              2.51x |                2.19x |
+|    Lg |     6.04MB |       0.75x / 0.69x |              2.58x |                1.83x |
+|    Xl |    21.91MB |       0.76x / 0.39x |              2.70x |                1.80x |
 
 |       Method | Filename |        Mean |      Error |    StdDev |    Gen 0 | Allocated |
 |------------- |--------- |------------:|-----------:|----------:|---------:|----------:|

@@ -21,7 +21,7 @@
   </ItemGroup>
 
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Command="IF NOT EXIST $(TargetDir)resources mkdir $(TargetDir)resources&#xD;&#xA;copy $(SolutionDir)resources\* $(TargetDir)resources\" />
+    <Exec Command="IF NOT EXIST $(TargetDir)resources mkdir $(TargetDir)resources&#xD;&#xA;copy $(SourceDir)..\resources\* $(TargetDir)resources\" />
   </Target>
 
 </Project>
