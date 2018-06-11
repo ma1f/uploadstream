@@ -9,6 +9,12 @@ Nuget: [https://www.nuget.org/packages/UploadStream](https://www.nuget.org/packa
 > install-package UploadStream
 ```
 
+Background
+----------
+A simplification & rewrite of recommended code for streaming multi-part file uploads as per Microsoft [documentation](https://docs.microsoft.com/en-us/aspnet/core/mvc/models/file-uploads?view=aspnetcore-2.1#uploading-large-files-with-streaming).
+
+Writeup on package and performance results can be read here - [https://medium.com/@ma1f/file-streaming-performance-in-dotnet-4dee608dd953](https://medium.com/@ma1f/file-streaming-performance-in-dotnet-4dee608dd953).
+
 Features
 --------
 Optimise multi-part streaming file upload performance, reduced CPU usage ~25% (us) and Memory impact ~50% (gen0 gc).
@@ -106,7 +112,7 @@ Results normalised to `IFormFile` (UploadFile) as a default baseline.
 |    Xl |    21.91MB |       0.67x / 0.45x |      39.52x |
 
 |       Method | Filename |         Mean |      Error |     StdDev |     Gen 0 |     Gen 1 |     Gen 2 | Allocated |
-|------------- |--------- |-------------:|-----------:|-----------:|----a------:|----------:|----------:|----------:|
+|------------- |--------- |-------------:|-----------:|-----------:|----------:|----------:|----------:|----------:|
 | UploadBase64 |   xs.png |     1.076 ms |  0.0211 ms |  0.0421 ms |  250.0000 |   62.5000 |         - |  17.95 KB |
 | UploadBase64 |   sm.jpg |     4.457 ms |  0.1062 ms |  0.1654 ms |   62.5000 |   62.5000 |         - |  13.32 KB |
 | UploadBase64 |   md.jpg |    42.683 ms |  0.8300 ms |  1.1081 ms | 1187.5000 | 1125.0000 | 1062.5000 |  22.48 KB |

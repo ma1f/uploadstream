@@ -29,8 +29,7 @@ namespace UploadStream {
                 
                 if (hasHeader && contentDispositionHeader.IsFileDisposition()) {
                     FileMultipartSection fileSection = section.AsFileSection();
-                    Debug.WriteLine($"{fileSection.FileStream.Length}, {fileSection.Name}, {fileSection.FileName}");
-
+                    
                     // process file stream
                     func(new MultipartFile(fileSection.FileStream, fileSection.Name, fileSection.FileName) {
                         ContentType = fileSection.Section.ContentType,

@@ -19,6 +19,6 @@ namespace File.Api.PerformanceTests {
 
             BenchmarkRunner.Run<DownloadBenchmarks>();
         }
+
     }
-    
 }
