@@ -77,6 +77,8 @@ namespace UploadStream.UnitTests {
                 file.Length.Should().Be(0);
                 while (file.OpenReadStream().ReadByte() != -1) ;
                 file.Length.Should().Be(bytes.Length);
+
+                return Task.CompletedTask;
             });
 
             // assert
