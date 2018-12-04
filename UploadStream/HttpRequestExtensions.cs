@@ -14,7 +14,7 @@ namespace UploadStream {
     public static class HttpRequestExtensions {
         static readonly FormOptions _defaultFormOptions = new FormOptions();
 
-        public static async Task<FormValueProvider> StreamFilesModel(this HttpRequest request, Action<IFormFile> func) {
+        public static async Task<FormValueProvider> StreamFilesModel(this HttpRequest request, Func<IFormFile, Task> func) {
             if (!MultipartRequestHelper.IsMultipartContentType(request.ContentType))
                 throw new Exception($"Expected a multipart request, but got {request.ContentType}");
 
@@ -31,7 +31,7 @@ namespace UploadStream {
                     FileMultipartSection fileSection = section.AsFileSection();
                     
                     // process file stream
-                    func(new MultipartFile(fileSection.FileStream, fileSection.Name, fileSection.FileName) {
+                    await func(new MultipartFile(fileSection.FileStream, fileSection.Name, fileSection.FileName) {
                         ContentType = fileSection.Section.ContentType,
                         ContentDisposition = fileSection.Section.ContentDisposition
                     });
@@ -54,7 +54,7 @@ namespace UploadStream {
                 }
 
                 // Drains any remaining section body that has not been consumed and reads the headers for the next section.
-                section = request.Body.Position == request.Body.Length ? null : await reader.ReadNextSectionAsync();
+                section = request.Body.CanSeek && request.Body.Position == request.Body.Length ? null : await reader.ReadNextSectionAsync();
             }
             // Bind form data to a model
             var formValueProvider = new FormValueProvider(BindingSource.Form, new FormCollection(formAccumulator.GetResults()), CultureInfo.CurrentCulture);
