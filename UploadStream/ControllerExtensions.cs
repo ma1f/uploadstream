@@ -22,7 +22,7 @@ namespace UploadStream {
         /// Processes Multi-part HttpRequest streams via the specified delegate, no model required for return
         /// </summary>
         /// <param name="func"></param>
-        public static async Task StreamFiles(this Controller controller, Func<IFormFile, Task> func) {
+        public static async Task StreamFiles(this ControllerBase controller, Func<IFormFile, Task> func) {
             await controller.Request.StreamFilesModel(func);
         }
 

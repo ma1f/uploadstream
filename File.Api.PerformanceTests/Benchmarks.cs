@@ -3,7 +3,7 @@
 namespace File.Api.PerformanceTests {
     public class Benchmarks {
         
-        public static void Main(string[] args) {
+        public static void Main() {
             BenchmarkRunner.Run<UploadBase64Benchmarks>();
             BenchmarkRunner.Run<UploadFileBenchmarks>();
             BenchmarkRunner.Run<UploadStreamBenchmarks>();

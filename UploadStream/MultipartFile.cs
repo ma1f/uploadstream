@@ -39,7 +39,7 @@ namespace UploadStream {
             _stream.CopyTo(target);
         }
 
-        public Task CopyToAsync(Stream target, CancellationToken cancellationToken = default(CancellationToken)) {
+        public Task CopyToAsync(Stream target, CancellationToken cancellationToken = default) {
             if (target == null)
                 throw new ArgumentNullException(nameof(target));
             return _stream.CopyToAsync(target, DefaultBufferSize, cancellationToken);

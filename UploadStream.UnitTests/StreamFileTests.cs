@@ -1,21 +1,19 @@
 using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 using System.IO;
+using System.Net;
 using System.Net.Http;
+using System.Threading.Tasks;
 
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 using FluentAssertions;
 using Moq;
-using Xunit;
 using Newtonsoft.Json;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
-using System.Threading;
-using System.Threading.Tasks;
-using Jil;
-using System.Net;
+using Xunit;
+
+using static UploadStream.UnitTests.TestController;
 
 namespace UploadStream.UnitTests {
     public class StreamFileTests : IClassFixture<TestServerFixture> {
@@ -138,7 +136,7 @@ namespace UploadStream.UnitTests {
 
         [Theory]
         [MemberData(nameof(PostData), DisableDiscoveryEnumeration = true)]
-        public async void DefaultUploadShouldNotBindWhenModelBindingDisabled(HttpContent postData) {
+        public async void DefaultUploadShouldNotBindFormWhenModelBindingDisabled(HttpContent postData) {
             // ACT
             var response = await _fixture.Client.PostAsync("api/default/nobinding", postData);
 
@@ -242,7 +240,7 @@ namespace UploadStream.UnitTests {
 
         [Theory]
         [MemberData(nameof(PostData), DisableDiscoveryEnumeration = true)]
-        public async void UploadModelWithModelBindingShouldReturnModels(HttpContent postData) {
+        public async void UploadModelWithModelBindingShouldNotReturnModels(HttpContent postData) {
             // ACT
             var response = await _fixture.Client.PostAsync("api/model/bindingenabled", postData);
 
@@ -251,10 +249,7 @@ namespace UploadStream.UnitTests {
 
             var responseStr = await response.Content.ReadAsStringAsync();
             var expected = new {
-                Model = new {
-                    Id = 42,
-                    Name = "mr-x"
-                },
+                Model = new TestModel {},
                 BindingModel = new {
                     Id = 42,
                     Name = "mr-x",
@@ -268,6 +263,28 @@ namespace UploadStream.UnitTests {
                         }
                     }
                 },
+                Files = new IFormFile[] {},
+                IsValid = true
+            };
+            var responseObj = JsonConvert.DeserializeObject(responseStr, expected.GetType());
+            responseObj.Should().BeEquivalentTo(expected);
+        }
+
+        [Theory]
+        [MemberData(nameof(PostData), DisableDiscoveryEnumeration = true)]
+        public async void UploadModelWithModelBindingAndNoModelShouldReturnModels(HttpContent postData) {
+            // ACT
+            var response = await _fixture.Client.PostAsync("api/model/bindingenabled/nomodel", postData);
+
+            // ASSERT
+            response.EnsureSuccessStatusCode();
+
+            var responseStr = await response.Content.ReadAsStringAsync();
+            var expected = new {
+                Model = new {
+                    Id = 42,
+                    Name = "mr-x"
+                },
                 Files = new[] {
                     new {
                         ContentDisposition = "form-data; name=files; filename=xs.png; filename*=utf-8''xs.png",
@@ -282,9 +299,10 @@ namespace UploadStream.UnitTests {
             var responseObj = JsonConvert.DeserializeObject(responseStr, expected.GetType());
             responseObj.Should().BeEquivalentTo(expected);
         }
+
         [Theory]
         [MemberData(nameof(PostData), DisableDiscoveryEnumeration = true)]
-        public async void UploadModelWithNoModelBindingShouldReturnNullBindingModel(HttpContent postData) {
+        public async void UploadModelWithNoModelBindingAndModelParametersShouldReturnNoModelAndNullBindingModel(HttpContent postData) {
             // ACT
             var response = await _fixture.Client.PostAsync("api/model/bindingdisabled", postData);
 
@@ -293,10 +311,7 @@ namespace UploadStream.UnitTests {
 
             var responseStr = await response.Content.ReadAsStringAsync();
             var expected = new {
-                Model = new {
-                    Id = 42,
-                    Name = "mr-x"
-                },
+                Model = new TestModel { },
                 BindingModel = new {
                     Id = default(int),
                     Name = default(string),
@@ -310,21 +325,12 @@ namespace UploadStream.UnitTests {
                         }
                     }
                 },
-                Files = new[] {
-                    new {
-                        ContentDisposition = "form-data; name=files; filename=xs.png; filename*=utf-8''xs.png",
-                        ContentType = "image/png",
-                        FileName = "xs.png",
-                        Length = 6086,
-                        Name= "files"
-                    }
-                },
+                Files = new IFormFile[] { },
                 IsValid = true
             };
             var responseObj = JsonConvert.DeserializeObject(responseStr, expected.GetType());
             responseObj.Should().BeEquivalentTo(expected);
         }
-
     }
 }
 

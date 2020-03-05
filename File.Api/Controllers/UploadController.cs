@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 using Microsoft.AspNetCore.Http;
@@ -51,7 +52,6 @@ namespace File.Api.Controllers {
         }
 
         [HttpPost("stream")]
-        [DisableFormModelBinding]
         public async Task<IActionResult> ControllerModelStream() {
             byte[] buffer = new byte[BUF_SIZE];
             List<IFormFile> files = new List<IFormFile>();
@@ -65,11 +65,19 @@ namespace File.Api.Controllers {
             if (!ModelState.IsValid)
                 return BadRequest();
 
-            return Ok(new { Model = model, Files = files });
+            return Ok(new {
+                Model = model,
+                Files = files.Select(x => new {
+                    x.Name,
+                    x.FileName,
+                    x.ContentDisposition,
+                    x.ContentType,
+                    x.Length
+                })
+            });
         }
 
         [HttpPost("stream/modeless")]
-        [DisableFormModelBinding]
         public async Task<IActionResult> ControllerStream() {
             byte[] buffer = new byte[BUF_SIZE];
             List<IFormFile> files = new List<IFormFile>();

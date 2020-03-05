@@ -6,13 +6,12 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
 
 using BenchmarkDotNet.Attributes;
-using BenchmarkDotNet.Attributes.Columns;
 using BenchmarkDotNet.Order;
 
 namespace File.Api.PerformanceTests {
     using System.IO;
 
-    [ConfidenceIntervalErrorColumn, MemoryDiagnoser, OrderProvider(SummaryOrderPolicy.FastestToSlowest)]
+    [ConfidenceIntervalErrorColumn, MemoryDiagnoser, Orderer(SummaryOrderPolicy.FastestToSlowest)]
     public class UploadFileLoadTestBenchmarks {
         
         public HttpClient Client;

@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
+using System.Net;
 using System.Threading.Tasks;
 
 using Microsoft.AspNetCore.Http;
@@ -22,29 +23,41 @@ namespace UploadStream {
             var formAccumulator = new KeyValueAccumulator();
             var boundary = MultipartRequestHelper.GetBoundary(MediaTypeHeaderValue.Parse(request.ContentType), _defaultFormOptions.MultipartBoundaryLengthLimit);
             var reader = new MultipartReader(boundary, request.Body);
-            var section = await reader.ReadNextSectionAsync();
+
+            MultipartSection section;
+
+            try {
+                // section may have already been read (if for example model binding is not disabled)
+                section = await reader.ReadNextSectionAsync();
+            } catch (IOException) {
+                section = null;
+            }
 
             while (section != null) {
-                var hasHeader = ContentDispositionHeaderValue.TryParse(section.ContentDisposition, out ContentDispositionHeaderValue contentDispositionHeader);
-                
-                if (hasHeader && contentDispositionHeader.IsFileDisposition()) {
-                    FileMultipartSection fileSection = section.AsFileSection();
-                    
-                    // process file stream
-                    await func(new MultipartFile(fileSection.FileStream, fileSection.Name, fileSection.FileName) {
-                        ContentType = fileSection.Section.ContentType,
-                        ContentDisposition = fileSection.Section.ContentDisposition
-                    });
-                } else if (hasHeader && contentDispositionHeader.IsFormDisposition()) {
-                    // Content-Disposition: form-data; name="key"
-                    // Do not limit the key name length here because the multipart headers length limit is already in effect.
-                    var key = HeaderUtilities.RemoveQuotes(contentDispositionHeader.Name);
-                    var encoding = section.GetEncoding();
-                    using (var streamReader = new StreamReader(section.Body, encoding, detectEncodingFromByteOrderMarks: true, bufferSize: 1024, leaveOpen: true)) {
+                var hasContentDispositionHeader = ContentDispositionHeaderValue.TryParse(section.ContentDisposition, out var contentDispositionHeader);
+
+                if (hasContentDispositionHeader) {
+                    if (contentDispositionHeader.IsFileDisposition()) {
+                        FileMultipartSection fileSection = section.AsFileSection();
+
+                        // process file stream
+                        await func(new MultipartFile(fileSection.FileStream, fileSection.Name, fileSection.FileName) {
+                            ContentType = fileSection.Section.ContentType,
+                            ContentDisposition = fileSection.Section.ContentDisposition
+                        });
+                    } else if (contentDispositionHeader.IsFormDisposition()) {
+                        // Content-Disposition: form-data; name="key"
+                        // Do not limit the key name length here because the multipart headers length limit is already in effect.
+                        var key = HeaderUtilities.RemoveQuotes(contentDispositionHeader.Name);
+                        var encoding = section.GetEncoding();
+                        if (encoding == null)
+                            throw new NullReferenceException($"Null encoding");
+
+                        using var streamReader = new StreamReader(section.Body, encoding, detectEncodingFromByteOrderMarks: true, bufferSize: 1024, leaveOpen: true);
                         // The value length limit is enforced by MultipartBodyLengthLimit
                         var value = await streamReader.ReadToEndAsync();
-                        if (String.Equals(value, "undefined", StringComparison.OrdinalIgnoreCase))
-                            value = String.Empty;
+                        if (string.Equals(value, "undefined", StringComparison.OrdinalIgnoreCase))
+                            value = string.Empty;
 
                         formAccumulator.Append(key.Value, value);
 
@@ -54,7 +67,12 @@ namespace UploadStream {
                 }
 
                 // Drains any remaining section body that has not been consumed and reads the headers for the next section.
-                section = request.Body.CanSeek && request.Body.Position == request.Body.Length ? null : await reader.ReadNextSectionAsync();
+                //section = request.Body.CanSeek && request.Body.Position == request.Body.Length ? null : await reader.ReadNextSectionAsync();
+                try {
+                    section = await reader.ReadNextSectionAsync();
+                } catch (IOException) {
+                    section = null;
+                }
             }
             // Bind form data to a model
             var formValueProvider = new FormValueProvider(BindingSource.Form, new FormCollection(formAccumulator.GetResults()), CultureInfo.CurrentCulture);

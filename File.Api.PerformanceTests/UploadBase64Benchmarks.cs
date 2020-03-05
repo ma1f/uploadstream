@@ -7,13 +7,12 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
 
 using BenchmarkDotNet.Attributes;
-using BenchmarkDotNet.Attributes.Columns;
 using BenchmarkDotNet.Order;
 
 namespace File.Api.PerformanceTests {
     using System.IO;
 
-    [ConfidenceIntervalErrorColumn, MemoryDiagnoser, OrderProvider(SummaryOrderPolicy.FastestToSlowest)]
+    [ConfidenceIntervalErrorColumn, MemoryDiagnoser, Orderer(SummaryOrderPolicy.FastestToSlowest)]
     public class UploadBase64Benchmarks {
         
         public HttpClient Client;
@@ -34,7 +33,7 @@ namespace File.Api.PerformanceTests {
             StringContent = new StringContent(content, Encoding.UTF8, "application/json");
         }
 
-        [Params("xs.png", "sm.jpg", "md.jpg", "lg.jpg", "xl.exe", "xxl.exe")]
+        [Params("xs.png", "sm.jpg", "md.jpg", "lg.jpg", "xl.exe")]
         public string Filename;
 
         [Benchmark]

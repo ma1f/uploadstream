@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 
 using Microsoft.AspNetCore.Http;
@@ -15,7 +15,7 @@ namespace UploadStream.UnitTests {
 
         const int BUF_SIZE = 4096;
 
-        class TestModel {
+        public class TestModel {
             public int Id { get; set; }
             public string Name { get; set; }
         }
@@ -35,17 +35,37 @@ namespace UploadStream.UnitTests {
 
         [HttpPost("default")]
         public IActionResult Default(TestFileModel model) {
-            return Ok(new { Model = model, ModelState.IsValid });
+            return Ok(new { Model = new {
+                model.Id,
+                model.Name,
+                Files = model.Files.Select(x => new {
+                    x.Name,
+                    x.FileName,
+                    x.ContentDisposition,
+                    x.ContentType,
+                    x.Length
+                })
+            }, ModelState.IsValid });
         }
 
         [HttpPost("default/nobinding")]
-        [DisableFormModelBindingAttribute]
+        [DisableFormModelBinding]
         public IActionResult DefaultNoModelBinding(TestFileModel model) {
-            return Ok(new { Model = model, ModelState.IsValid });
+            return Ok(new { Model = new {
+                model.Id,
+                model.Name,
+                Files = model.Files.Select(x => new {
+                    x.Name,
+                    x.FileName,
+                    x.ContentDisposition,
+                    x.ContentType,
+                    x.Length
+                })
+            }, ModelState.IsValid });
         }
 
         [HttpPost("null")]
-        [DisableFormModelBindingAttribute]
+        [DisableFormModelBinding]
         public async Task<IActionResult> Null() {
             await this.StreamFiles(x => {
                 throw new Exception("should not execute");
@@ -55,7 +75,7 @@ namespace UploadStream.UnitTests {
         }
 
         [HttpPost("nomodel")]
-        [DisableFormModelBindingAttribute]
+        [DisableFormModelBinding]
         public async Task<IActionResult> NoModel() {
             byte[] buffer = new byte[BUF_SIZE];
             List<IFormFile> files = new List<IFormFile>();
@@ -66,11 +86,19 @@ namespace UploadStream.UnitTests {
                 files.Add(x);
             });
 
-            return Ok(new { Files = files, ModelState.IsValid });
+            return Ok(new {
+                Files = files.Select(x => new {
+                    x.Name,
+                    x.FileName,
+                    x.ContentDisposition,
+                    x.ContentType,
+                    x.Length
+                }),
+                ModelState.IsValid });
         }
 
         [HttpPost("model")]
-        [DisableFormModelBindingAttribute]
+        [DisableFormModelBinding]
         public async Task<IActionResult> Model() {
             byte[] buffer = new byte[BUF_SIZE];
             List<IFormFile> files = new List<IFormFile>();
@@ -84,11 +112,21 @@ namespace UploadStream.UnitTests {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            return Ok(new { Model = model, Files = files, ModelState });
+            return Ok(new {
+                Model = model,
+                Files = files.Select(x => new {
+                    x.Name,
+                    x.FileName,
+                    x.ContentDisposition,
+                    x.ContentType,
+                    x.Length
+                }),
+                ModelState
+            });
         }
 
         [HttpPost("model/validation")]
-        [DisableFormModelBindingAttribute]
+        [DisableFormModelBinding]
         public async Task<IActionResult> ModelValidation() {
             byte[] buffer = new byte[BUF_SIZE];
             List<IFormFile> files = new List<IFormFile>();
@@ -102,7 +140,17 @@ namespace UploadStream.UnitTests {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            return Ok(new { Model = model, Files = files, ModelState });
+            return Ok(new {
+                Model = model,
+                Files = files.Select(x => new {
+                    x.Name,
+                    x.FileName,
+                    x.ContentDisposition,
+                    x.ContentType,
+                    x.Length
+                }),
+                ModelState
+            });
         }
 
         [HttpPost("model/bindingenabled")]
@@ -119,11 +167,59 @@ namespace UploadStream.UnitTests {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            return Ok(new { Model = model, BindingModel = bindingmodel, Files = files, ModelState.IsValid });
+            return Ok(new {
+                Model = model,
+                BindingModel = new {
+                    bindingmodel.Id,
+                    bindingmodel.Name,
+                    Files = bindingmodel.Files.Select(x => new {
+                        x.Name,
+                        x.FileName,
+                        x.ContentDisposition,
+                        x.ContentType,
+                        x.Length
+                    })
+                },
+                Files = files.Select(x => new {
+                    x.Name,
+                    x.FileName,
+                    x.ContentDisposition,
+                    x.ContentType,
+                    x.Length
+                }),
+                ModelState.IsValid
+            });
+        }
+
+        [HttpPost("model/bindingenabled/nomodel")]
+        public async Task<IActionResult> ModelBindingEnabledNoModelParameters() {
+            byte[] buffer = new byte[BUF_SIZE];
+            List<IFormFile> files = new List<IFormFile>();
+
+            var model = await this.StreamFiles<TestModel>(async x => {
+                using (var stream = x.OpenReadStream())
+                    while (await stream.ReadAsync(buffer, 0, buffer.Length) > 0) ;
+                files.Add(x);
+            });
+
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            return Ok(new {
+                Model = model,
+                Files = files.Select(x => new {
+                    x.Name,
+                    x.FileName,
+                    x.ContentDisposition,
+                    x.ContentType,
+                    x.Length
+                }),
+                ModelState.IsValid
+            });
         }
 
         [HttpPost("model/bindingdisabled")]
-        [DisableFormModelBindingAttribute]
+        [DisableFormModelBinding]
         public async Task<IActionResult> ModelBindingDisabled(TestFileModel bindingmodel) {
             byte[] buffer = new byte[BUF_SIZE];
             List<IFormFile> files = new List<IFormFile>();
@@ -137,7 +233,28 @@ namespace UploadStream.UnitTests {
             if (!ModelState.IsValid)
                 return BadRequest();
 
-            return Ok(new { Model = model, BindingModel = bindingmodel, Files = files, ModelState.IsValid });
+            return Ok(new {
+                Model = model,
+                BindingModel = new {
+                    bindingmodel.Id,
+                    bindingmodel.Name,
+                    Files = bindingmodel.Files.Select(x => new {
+                        x.Name,
+                        x.FileName,
+                        x.ContentDisposition,
+                        x.ContentType,
+                        x.Length
+                    })
+                },
+                Files = files.Select(x => new {
+                    x.Name,
+                    x.FileName,
+                    x.ContentDisposition,
+                    x.ContentType,
+                    x.Length
+                }),
+                ModelState.IsValid
+            });
         }
     }
 }

@@ -15,18 +15,10 @@ namespace File.Api.IntegrationTests {
     public class FileApiTests : IClassFixture<TestServerFixture> {
 
         readonly TestServerFixture _fixture;
-        readonly static string[] filenames = new[] { "xs.png", "sm.jpg", "md.jpg", "lg.jpg", "xl.exe", "xxl.exe" };
+        readonly static string[] filenames = new[] { "xs.png", "sm.jpg", "md.jpg", "lg.jpg", "xl.exe" };
         const int LOAD_LIMIT = 3;
 
         static readonly string BaseDir = Path.Combine(AppContext.BaseDirectory, "resources");
-
-        static string[] Paths {
-            get {
-                return filenames.Select(x => Path.Combine(BaseDir, x)).ToArray();
-            }
-        }
-        static FileApiTests() {
-        }
 
         public FileApiTests(TestServerFixture fixture) {
             _fixture = fixture;
