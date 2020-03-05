@@ -25,8 +25,7 @@ By default dotnet model form model binding loads the entire stream into memory u
 where processing of the stream should occur during streaming rather then buffering entire file(s) to memory/disk.
 
 This package allows upload streams to be asynchronously processed via a delegate (`StreamFiles<T>(Action<IFormFile> func)`,
-maintaining generic model binding functionality with `ModelState` validation - default form model binding is disabled via a
-custom `[DisableFormModelBinding]` attribute.
+maintaining generic model binding functionality with `ModelState` validation.
 
 Usage
 -----
@@ -57,11 +56,11 @@ with a cost of increased memory allocations (0.3x - 0.1x) and increased memory h
 
 | Alias | File sizes | StreamFiles (us/alloc) | Base64 (us/alloc) |
 |------ |-----------:|-----------------------:|------------------:|
-|    Xs |    5.94 KB |           1.14x / 1.23x |     1.16x / 1.44x |
-|    Sm |  106.53 KB |           3.98x / 1.43x |     2.85x / 0.30x |
-|    Md |  865.37 KB |           8.66x / 1.24x |     2.36x / 0.09x |
-|    Lg |    6.04 MB |           9.86x / 1.09x |     1.97x / 0.11x |
-|    Xl |   21.91 MB |           9.16x / 1.08x |     1.72x / 0.14x |
+|    Xs |    5.94 KB |          1.14x / 1.23x |     1.16x / 1.44x |
+|    Sm |  106.53 KB |          3.98x / 1.43x |     2.85x / 0.30x |
+|    Md |  865.37 KB |          8.66x / 1.24x |     2.36x / 0.09x |
+|    Lg |    6.04 MB |          9.86x / 1.09x |     1.97x / 0.11x |
+|    Xl |   21.91 MB |          9.16x / 1.08x |     1.72x / 0.14x |
 
 
 ### Upload Performance
