@@ -48,7 +48,17 @@ namespace File.Api.Controllers {
                 using (var stream = s.OpenReadStream())
                     while (await stream.ReadAsync(buffer, 0, buffer.Length) > 0) ;
 
-            return Ok(new { model.Name, model.Description, model.Files.Count });
+            return Ok(new {
+                model.Name,
+                model.Description,
+                files = model.Files.Select(x => new {
+                    x.Name,
+                    x.FileName,
+                    x.ContentDisposition,
+                    x.ContentType,
+                    x.Length
+                })
+            });
         }
 
         [HttpPost("stream")]
@@ -91,7 +101,15 @@ namespace File.Api.Controllers {
             if (!ModelState.IsValid)
                 return BadRequest();
 
-            return Ok(new { Files = files });
+            return Ok(new {
+                Files = files.Select(x => new {
+                    x.Name,
+                    x.FileName,
+                    x.ContentDisposition,
+                    x.ContentType,
+                    x.Length
+                })
+            });
         }
 
         [HttpPost("stream/binding")]
@@ -108,7 +126,16 @@ namespace File.Api.Controllers {
             if (!ModelState.IsValid)
                 return BadRequest();
 
-            return Ok(new { Model = model, Files = files });
+            return Ok(new {
+                Model = model,
+                Files = files.Select(x => new {
+                    x.Name,
+                    x.FileName,
+                    x.ContentDisposition,
+                    x.ContentType,
+                    x.Length
+                })
+            });
         }
 
         [HttpPost("stream/binding/model")]
@@ -125,7 +152,27 @@ namespace File.Api.Controllers {
             if (!ModelState.IsValid)
                 return BadRequest();
 
-            return Ok(new { model, streamModel, Files = files });
+            return Ok(new {
+                model = new {
+                    model.Name,
+                    model.Description,
+                    Files = model.Files.Select(x => new {
+                        x.Name,
+                        x.FileName,
+                        x.ContentDisposition,
+                        x.ContentType,
+                        x.Length
+                    })
+                },
+                streamModel,
+                Files = files.Select(x => new {
+                    x.Name,
+                    x.FileName,
+                    x.ContentDisposition,
+                    x.ContentType,
+                    x.Length
+                })
+            });
         }
 
         [HttpPost("model/bindingdisabled")]
@@ -134,7 +181,7 @@ namespace File.Api.Controllers {
             byte[] buffer = new byte[BUF_SIZE];
             List<IFormFile> files = new List<IFormFile>();
 
-            var streamModel = await this.StreamFiles<UploadModel>(async x => {
+            var streamModel = await this.StreamFiles<StreamModel>(async x => {
                 using (var stream = x.OpenReadStream())
                     while (await stream.ReadAsync(buffer, 0, buffer.Length) > 0) ;
                 files.Add(x);
@@ -143,7 +190,27 @@ namespace File.Api.Controllers {
             if (!ModelState.IsValid)
                 return BadRequest();
 
-            return Ok(new { model, streamModel, files.Count });
+            return Ok(new {
+                model = new {
+                    model.Name,
+                    model.Description,
+                    Files = model.Files.Select(x => new {
+                        x.Name,
+                        x.FileName,
+                        x.ContentDisposition,
+                        x.ContentType,
+                        x.Length
+                    })
+                },
+                streamModel,
+                files = files.Select(x => new {
+                    x.Name,
+                    x.FileName,
+                    x.ContentDisposition,
+                    x.ContentType,
+                    x.Length
+                })
+            });
         }
     }
 }
