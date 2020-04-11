@@ -11,6 +11,7 @@ using Xunit;
 
 namespace File.Api.IntegrationTests {
     using System.IO;
+    using UploadStream;
 
     public class FileApiTests : IClassFixture<TestServerFixture> {
 
@@ -122,9 +123,11 @@ namespace File.Api.IntegrationTests {
             response.EnsureSuccessStatusCode();
 
             var responseStr = await response.Content.ReadAsStringAsync();
-            responseStr.Should().Contain("name");
-            responseStr.Should().Contain("description");
-            responseStr.Should().Contain("1");
+            var responseObj = JsonConvert.DeserializeObject<UploadResult>(responseStr);
+
+            responseObj.Name.Should().Equals("name");
+            responseObj.Description.Should().Equals("description");
+            responseObj.Files.Should().HaveCount(1);
         }
 
         [Theory]
@@ -139,9 +142,11 @@ namespace File.Api.IntegrationTests {
             response.EnsureSuccessStatusCode();
 
             var responseStr = await response.Content.ReadAsStringAsync();
-            responseStr.Should().Contain("name");
-            responseStr.Should().Contain("description");
-            responseStr.Should().Contain(LOAD_LIMIT.ToString());
+            var responseObj = JsonConvert.DeserializeObject<UploadResult>(responseStr);
+
+            responseObj.Name.Should().Equals("name");
+            responseObj.Description.Should().Equals("description");
+            responseObj.Files.Should().HaveCount(LOAD_LIMIT);
         }
 
         [Theory]
@@ -149,7 +154,7 @@ namespace File.Api.IntegrationTests {
         public async void PostFileLoad(params HttpContent[] postData) {
             // ARRANGE
             var results = new HttpResponseMessage[LOAD_LIMIT];
-            
+
             // ACT
             Parallel.For(0, LOAD_LIMIT, (i, s) => results[i] = _fixture.Client.PostAsync("api/upload", postData[i]).Result);
 
@@ -158,9 +163,11 @@ namespace File.Api.IntegrationTests {
                 response.EnsureSuccessStatusCode();
 
                 var responseStr = await response.Content.ReadAsStringAsync();
-                responseStr.Should().Contain("name");
-                responseStr.Should().Contain("description");
-                responseStr.Should().Contain("1");
+                var responseObj = JsonConvert.DeserializeObject<UploadResult>(responseStr);
+
+                responseObj.Name.Should().Equals("name");
+                responseObj.Description.Should().Equals("description");
+                responseObj.Files.Should().HaveCount(1);
             }
         }
 
@@ -222,23 +229,30 @@ namespace File.Api.IntegrationTests {
                 model.Files.Count().Should().Be(1);
             }
         }
-    }
 
-    class HttpRequestResult {
-        public ModelResult Model { get; set; }
-        public IEnumerable<FormFileResult> Files { get; set; }
-    }
-    class ModelResult {
-        public string Name { get; set; }
-        public string Description{ get; set; }
-    }
-    class FormFileResult {
-        public string Name { get; set; }
-        public string FileName { get; set; }
-        public long Length { get; set; }
-        public string ContentType { get; set; }
-        public string ContentDisposition { get; set; }
-        public Dictionary<string,string[]> Headers{ get; set; }
+
+        class HttpRequestResult {
+            public ModelResult Model { get; set; }
+            public IEnumerable<FormFileResult> Files { get; set; }
+        }
+        class ModelResult {
+            public string Name { get; set; }
+            public string Description { get; set; }
+        }
+        class FormFileResult {
+            public string Name { get; set; }
+            public string FileName { get; set; }
+            public long Length { get; set; }
+            public string ContentType { get; set; }
+            public string ContentDisposition { get; set; }
+            public Dictionary<string, string[]> Headers { get; set; }
+        }
+
+        public class UploadResult {
+            public string Name { get; set; }
+            public string Description { get; set; }
+            public List<MultipartFile> Files { get; set; }
+        }
 
     }
 }

@@ -1,4 +1,4 @@
-﻿using System.Text;
+using System.Text;
 
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Net.Http.Headers;

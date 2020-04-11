@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -11,7 +11,7 @@ namespace UploadStream {
         // Stream.CopyTo method uses 80KB as the default buffer size.
         const int DefaultBufferSize = 80 * 1024;
         readonly Stream _stream;
-        
+
         public string ContentType {
             get { return Headers["Content-Type"]; }
             set { Headers["Content-Type"] = value; }
