@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
         <TargetFrameworks>netcoreapp3.1</TargetFrameworks>
@@ -12,7 +12,7 @@
         <PackageId>UploadStream</PackageId>
         <Authors>Mark Alford</Authors>
         <Company>ZenistCode</Company>
-        <Version>3.1.1</Version>
+        <VersionPrefix>3.1.2</VersionPrefix>
         <PackageTags>File;Upload</PackageTags>
         <Title>UploadStream - high performance file upload streaming for dotnet</Title>
         <Description>

@@ -40,6 +40,7 @@ namespace UploadStream {
 
                         // process file stream
                         await func(new MultipartFile(fileSection.FileStream, fileSection.Name, fileSection.FileName) {
+                            Headers = new HeaderDictionary(fileSection.Section.Headers),
                             ContentType = fileSection.Section.ContentType,
                             ContentDisposition = fileSection.Section.ContentDisposition
                         });
